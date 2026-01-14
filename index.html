@@ -60,19 +60,21 @@ th {
 </table>
 
 <script>
-/* ✅ 桃園市政府正式 Open Data API（前端可直接抓） */
+/* ✅ 桃園官方「穩定可用」資料 API */
 const API_URL =
-  "https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=5ca2bfc7-9ace-4719-88ae-4034b9a5a55c&format=json";
+  "https://data.tycg.gov.tw/api/v1/rest/datastore/a1b4714b-3b75-4ff8-a8f2-cc377e4eaa0f?format=json";
 
 async function loadData() {
   try {
     const res = await fetch(API_URL, { cache: "no-store" });
-    const data = await res.json();
+    const json = await res.json();
+
+    const records = json?.result?.records || [];
 
     const tbody = document.getElementById("data");
     tbody.innerHTML = "";
 
-    data.forEach(st => {
+    records.forEach(st => {
       if (st.act !== "1") return;
 
       const tr = document.createElement("tr");
@@ -90,7 +92,7 @@ async function loadData() {
     });
 
     document.getElementById("status").innerText =
-      "最後更新：" + (data[0]?.mday || "");
+      "最後更新：" + (records[0]?.mday || "");
 
   } catch (err) {
     document.getElementById("status").innerText =
@@ -99,10 +101,7 @@ async function loadData() {
   }
 }
 
-/* 初次載入 */
 loadData();
-
-/* 每 60 秒更新 */
 setInterval(loadData, 60000);
 </script>
 
