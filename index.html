@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>桃園市 YouBike 即時資訊</title>
+
+<style>
+body {
+  font-family: Arial, "微軟正黑體";
+  margin: 16px;
+}
+
+h2 {
+  margin-bottom: 6px;
+}
+
+#status {
+  margin-bottom: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.zero {
+  background-color: #ffd6d6;
+  color: #b00000;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🚲 桃園市 YouBike 即時資訊</h2>
+<div id="status">更新中…</div>
+
+<table>
+<thead>
+<tr>
+  <th>站名</th>
+  <th>行政區</th>
+  <th>可借</th>
+  <th>可還</th>
+</tr>
+</thead>
+<tbody id="data"></tbody>
+</table>
+
+<script>
+/* ✅ 桃園市政府正式 Open Data API（前端可直接抓） */
+const API_URL =
+  "https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=5ca2bfc7-9ace-4719-88ae-4034b9a5a55c&format=json";
+
+async function loadData() {
+  try {
+    const res = await fetch(API_URL, { cache: "no-store" });
+    const data = await res.json();
+
+    const tbody = document.getElementById("data");
+    tbody.innerHTML = "";
+
+    data.forEach(st => {
+      if (st.act !== "1") return;
+
+      const tr = document.createElement("tr");
+
+      const sbiZero = Number(st.sbi) === 0 ? "zero" : "";
+      const bempZero = Number(st.bemp) === 0 ? "zero" : "";
+
+      tr.innerHTML = `
+        <td>${st.sna}</td>
+        <td>${st.sarea}</td>
+        <td class="${sbiZero}">${st.sbi}</td>
+        <td class="${bempZero}">${st.bemp}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("status").innerText =
+      "最後更新：" + (data[0]?.mday || "");
+
+  } catch (err) {
+    document.getElementById("status").innerText =
+      "資料載入失敗（請重新整理）";
+    console.error(err);
+  }
+}
+
+/* 初次載入 */
+loadData();
+
+/* 每 60 秒更新 */
+setInterval(loadData, 60000);
+</script>
+
+</body>
+</html>
